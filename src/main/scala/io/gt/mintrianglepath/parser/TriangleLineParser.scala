@@ -4,22 +4,18 @@ import scala.util.Try
 
 import cats.data.{ Validated, ValidatedNel }
 import cats.data.Validated.Valid
-import cats.implicits.catsSyntaxFoldOps
 
 class TriangleLineParser {
-  def parseLine(line: String): Either[String, Seq[Int]] = {
+  def parseLine(line: String): ValidatedNel[String, Seq[Int]] =
     line.trim
       .split("\\s+")
-      .map(parseSingleToken)
+      .map(parseSingleToken(_, line))
       .fold(Valid(Seq.empty))(_ combine _)
-      .leftMap(errors => errors.mkString_(s"Issues for line ${line} [", ", ", "]"))
-      .toEither
-  }
 
-  private def parseSingleToken(token: String): ValidatedNel[String, Seq[Int]] =
+  private def parseSingleToken(token: String, line: String): ValidatedNel[String, Seq[Int]] =
     Try(token.toInt).toOption match {
       case Some(value) => Validated.valid(Seq(value))
-      case None        => Validated.invalidNel(s"Token $token is not a number")
+      case None        => Validated.invalidNel(s"Token [$token] in line [$line] is not a number")
     }
 }
 

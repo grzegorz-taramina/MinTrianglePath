@@ -2,7 +2,7 @@ package io.gt.mintrianglepath.service
 
 import cats.data.EitherT
 import cats.effect.IO
-import cats.implicits.{ catsSyntaxEitherId, catsSyntaxSemigroup, toTraverseOps }
+import cats.implicits.{ catsSyntaxEitherId, catsSyntaxFoldOps, catsSyntaxSemigroup, toTraverseOps }
 import io.gt.mintrianglepath.model.{ PathResult, Triangle }
 import io.gt.mintrianglepath.parser.TriangleLineParser
 import io.gt.mintrianglepath.reader.TriangleReader
@@ -51,8 +51,14 @@ class TriangleService(triangleReader: TriangleReader,
       "No lines read from input"
     )
 
-  private def toParsedTriangle(triangle: Seq[String]): EitherT[IO, String, Seq[Seq[Int]]] =
-    EitherT.fromEither[IO](triangle.map(triangleLineParser.parseLine).sequence)
+  private def toParsedTriangle(triangle: Seq[String]): EitherT[IO, String, Seq[Seq[Int]]] = {
+    val errorOrTriangle = triangle
+      .map(triangleLineParser.parseLine)
+      .sequence
+      .leftMap(errors => errors.mkString_(s"Found issues for triangle items [", ", ", "]"))
+      .toEither
+    EitherT.fromEither[IO](errorOrTriangle)
+  }
 
   private def toValidatedTriangle(triangle: Seq[Seq[Int]]): EitherT[IO, String, Seq[Seq[Int]]] =
     EitherT.fromEither[IO](triangleValidator.validateTriangle(triangle))
