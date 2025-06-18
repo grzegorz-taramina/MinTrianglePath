@@ -1,5 +1,4 @@
-package io.gt.mintrianglepath
-package validator
+package io.gt.mintrianglepath.validator
 
 import cats.implicits.catsSyntaxEitherId
 import org.scalatest.matchers.should.Matchers
