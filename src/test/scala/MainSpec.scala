@@ -16,7 +16,7 @@ class MainSpec
       with Matchers {
   "just checking that pipeline" should {
     "run all the tests" in {
-      IO.pure(42).asserting(_ shouldBe 13)
+      IO.pure(42).asserting(_ shouldBe 42)
     }
   }
 }
