@@ -25,4 +25,18 @@ Example usage with passing a file contents:
 Minimal path is: 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 50
 ```
 
+Example with providing rows in terminal:
+
+```
+➜  MinTrianglePath git:(main) ✗ cat << EOF | ./target/universal/mintrianglepath-0.1.0-SNAPSHOT/bin/mintrianglepath 
+pipe heredoc> 1
+pipe heredoc> 1 2
+pipe heredoc> 3 4 5
+pipe heredoc> EOF
+[    1] 1
+[    2] 1 2
+[    3] 3 4 5
+Minimal path is: 1 + 1 + 3 = 5
+```
+
 It is also possible to run the the application from intellij. Simply run Main class. You can type as many rows as you want. The application will calculate minimal path when you say "stop".
