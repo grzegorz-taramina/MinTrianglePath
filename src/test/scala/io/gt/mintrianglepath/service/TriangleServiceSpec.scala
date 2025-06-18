@@ -8,9 +8,9 @@ import io.gt.mintrianglepath.parser.TriangleLineParser
 import io.gt.mintrianglepath.reader.TriangleReader
 import io.gt.mintrianglepath.validator.TriangleValidator
 import org.scalamock.scalatest.AsyncMockFactory
-import org.scalatest.{ EitherValues, OptionValues }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatest.EitherValues
 
 class TriangleServiceSpec extends AsyncWordSpec with AsyncIOSpec with AsyncMockFactory with EitherValues with Matchers {
   "triangle service" should {
@@ -61,8 +61,9 @@ class TriangleServiceSpec extends AsyncWordSpec with AsyncIOSpec with AsyncMockF
     }
   }
 
-  private def newServiceWithTriangle(triangle: Option[Seq[Seq[String]]]): TriangleService = {
-    val triangleReader = mock[TriangleReader]
+  private def newServiceWithTriangle(triangle: Option[Seq[Seq[String]]]): TriangleService[IO] = {
+    class MockTriangleReader extends TriangleReader[IO]
+    val triangleReader = mock[MockTriangleReader]
     triangle.foreach { t =>
       (triangleReader.readLinesUntilStopped _)
         .expects()

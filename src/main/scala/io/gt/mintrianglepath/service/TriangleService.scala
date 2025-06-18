@@ -1,18 +1,18 @@
 package io.gt.mintrianglepath.service
 
 import cats.data.EitherT
-import cats.effect.IO
+import cats.effect.{ Async, IO }
 import cats.implicits.{ catsSyntaxEitherId, catsSyntaxFoldOps, catsSyntaxSemigroup, toTraverseOps }
 import io.gt.mintrianglepath.model.{ PathResult, Triangle }
 import io.gt.mintrianglepath.parser.TriangleLineParser
 import io.gt.mintrianglepath.reader.TriangleReader
 import io.gt.mintrianglepath.validator.TriangleValidator
 
-class TriangleService(triangleReader: TriangleReader,
-                      triangleLineParser: TriangleLineParser,
-                      triangleValidator: TriangleValidator
+class TriangleService[F[_]: Async](triangleReader: TriangleReader[F],
+                                   triangleLineParser: TriangleLineParser,
+                                   triangleValidator: TriangleValidator
 ) {
-  def findMinimalPath(triangle: Triangle): EitherT[IO, String, PathResult] = {
+  def findMinimalPath(triangle: Triangle): EitherT[F, String, PathResult] = {
     val initial = triangle.rows.last.map(v => PathResult(v, List(v)))
 
     val result = triangle.rows
@@ -26,7 +26,7 @@ class TriangleService(triangleReader: TriangleReader,
             combineLower(value, left, right)
         }
       }
-    EitherT.fromEither[IO](result.headOption.map(_.asRight).getOrElse("Triangle is empty".asLeft))
+    EitherT.fromEither[F](result.headOption.map(_.asRight).getOrElse("Triangle is empty".asLeft))
   }
 
   private def combineLower(currentValue: Int, left: PathResult, right: PathResult): PathResult = {
@@ -38,35 +38,35 @@ class TriangleService(triangleReader: TriangleReader,
     }
   }
 
-  def readTriangle(): EitherT[IO, String, Triangle] =
+  def readTriangle(): EitherT[F, String, Triangle] =
     for {
       rawInput          <- readTriangleFromStdin
       parsedInput       <- toParsedTriangle(rawInput)
       validatedTriangle <- toValidatedTriangle(parsedInput)
     } yield Triangle(validatedTriangle)
 
-  private def readTriangleFromStdin: EitherT[IO, String, Seq[String]] =
-    EitherT.fromOptionF[IO, String, Seq[String]](
+  private def readTriangleFromStdin: EitherT[F, String, Seq[String]] =
+    EitherT.fromOptionF[F, String, Seq[String]](
       triangleReader.readLinesUntilStopped.compile.last,
       "No lines read from input"
     )
 
-  private def toParsedTriangle(triangle: Seq[String]): EitherT[IO, String, Seq[Seq[Int]]] = {
+  private def toParsedTriangle(triangle: Seq[String]): EitherT[F, String, Seq[Seq[Int]]] = {
     val errorOrTriangle = triangle
       .map(triangleLineParser.parseLine)
       .sequence
       .leftMap(errors => errors.mkString_(s"Found issues for triangle items [", ", ", "]"))
       .toEither
-    EitherT.fromEither[IO](errorOrTriangle)
+    EitherT.fromEither[F](errorOrTriangle)
   }
 
-  private def toValidatedTriangle(triangle: Seq[Seq[Int]]): EitherT[IO, String, Seq[Seq[Int]]] =
-    EitherT.fromEither[IO](triangleValidator.validateTriangle(triangle))
+  private def toValidatedTriangle(triangle: Seq[Seq[Int]]): EitherT[F, String, Seq[Seq[Int]]] =
+    EitherT.fromEither[F](triangleValidator.validateTriangle(triangle))
 }
 
 object TriangleService {
-  def apply(triangleReader: TriangleReader,
-            triangleLineParser: TriangleLineParser,
-            triangleValidator: TriangleValidator
-  ): TriangleService = new TriangleService(triangleReader, triangleLineParser, triangleValidator)
+  def apply[F[_]: Async](triangleReader: TriangleReader[F],
+                         triangleLineParser: TriangleLineParser,
+                         triangleValidator: TriangleValidator
+  ): TriangleService[F] = new TriangleService(triangleReader, triangleLineParser, triangleValidator)
 }

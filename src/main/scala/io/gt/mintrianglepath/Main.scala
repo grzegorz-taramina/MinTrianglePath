@@ -10,12 +10,11 @@ import io.gt.mintrianglepath.validator.TriangleValidator
 
 object Main extends IOApp.Simple {
   override def run: IO[Unit] = {
-    val triangleService = TriangleService(TriangleReader(), TriangleLineParser(), TriangleValidator())
+    val triangleService = TriangleService[IO](TriangleReader[IO](), TriangleLineParser(), TriangleValidator())
 
     (for {
       triangle   <- triangleService.readTriangle()
       pathResult <- triangleService.findMinimalPath(triangle)
-      // _          <- EitherT.liftF[IO, String, Unit](IO.println(pathResult.show))
     } yield pathResult).value.flatMap {
       case Left(error)   => Console[IO].println(error)
       case Right(result) => Console[IO].println(result.show)
