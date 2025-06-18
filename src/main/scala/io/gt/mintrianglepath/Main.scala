@@ -1,5 +1,6 @@
 package io.gt.mintrianglepath
 
+import cats.data.EitherT
 import cats.effect.{ IO, IOApp }
 import cats.effect.std.Console
 import cats.implicits.toShow
@@ -14,6 +15,7 @@ object Main extends IOApp.Simple {
 
     (for {
       triangle   <- triangleService.readTriangle()
+      _          <- EitherT.liftF[IO, String, Unit](Console[IO].println(triangle.show))
       pathResult <- triangleService.findMinimalPath(triangle)
     } yield pathResult).value.flatMap {
       case Left(error)   => Console[IO].println(error)
