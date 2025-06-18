@@ -58,6 +58,16 @@ class TriangleServiceSpec extends AsyncWordSpec with AsyncIOSpec with AsyncMockF
             result.value shouldBe PathResult(18, List(7, 6, 3, 2))
           }
       }
+
+      "handle negative values" in {
+        val triangle = Triangle(List(List(1), List(1, 9), List(1, 8, 9), List(1, 8, 8, -20)))
+        newServiceWithTriangle(none[Seq[Seq[String]]])
+          .findMinimalPath(triangle)
+          .value
+          .asserting { result =>
+            result.value shouldBe PathResult(-1, List(1, 9, 9, -20))
+          }
+      }
     }
   }
 
